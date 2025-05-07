@@ -1,3 +1,5 @@
+import asyncio
+
 from db.config import settings
 from db.errors import (
     PhoneCodeError,
@@ -31,6 +33,8 @@ app = FastAPI(
     description=settings.description,
     openapi_prefix=settings.openapi_prefix,
     openapi_url=settings.openapi_url,
+    docs_url=settings.docs_url,
+    redoc_url=settings.redoc_url,
 )
 
 app.include_router(users.router, tags=["Authentication"])
@@ -123,4 +127,4 @@ app.mount("/metrics", metrics_app)
 
 
 if __name__ == "__main__":
-    init_tables()
+    asyncio.run(init_tables())

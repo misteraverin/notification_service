@@ -7,21 +7,24 @@ load_dotenv()
 
 
 class Settings(BaseConfig):
-    title: str = os.environ.get("TITLE")
+    title: str = os.environ.get("TITLE", "Default API Title")
     version: str = "1.0.0"
-    description: str = os.environ.get("DESCRIPTION")
-    openapi_prefix: str = os.environ.get("OPENAPI_PREFIX")
-    redoc_url: str = "/redoc"
-    openapi_url: str = "/openapi.json"
-    api_prefix: str = "/api"
-    debug: bool = os.environ.get("DEBUG")
-    postgres_user: str = os.environ.get("POSTGRES_USER")
-    postgres_password: str = os.environ.get("POSTGRES_PASSWORD")
+    description: str = os.environ.get("DESCRIPTION", "Default API Description")
+    openapi_prefix: str = os.environ.get("OPENAPI_PREFIX", "")
+    redoc_url: str = os.environ.get("REDOC_URL", "/redoc")
+    openapi_url: str = os.environ.get("OPENAPI_URL", "/openapi.json")
+    docs_url: str = os.environ.get("DOCS_URL", "/docs")
+    api_prefix: str = os.environ.get("API_PREFIX", "/api")
+    debug: bool = os.environ.get("DEBUG", "False").lower() == "true"
+    postgres_user: str = os.environ.get("POSTGRES_USER", "user")
+    postgres_password: str = os.environ.get("POSTGRES_PASSWORD", "password")
     postgres_server: str = os.environ.get("POSTGRES_SERVER", "localhost")
-    postgres_port: str = os.environ.get("POSTGRES_PORT", 5432)
-    postgres_db: str = os.environ.get("POSTGRES_DB")
-    postgres_db_tests: str = os.environ.get("POSTGRES_DB_TESTS")
-    db_echo_log: bool = True if os.environ.get("DEBUG") == "True" else False
+    postgres_port: str = os.environ.get("POSTGRES_PORT", "5432")
+    postgres_db: str = os.environ.get("POSTGRES_DB", "app_db")
+    postgres_db_tests: str = os.environ.get("POSTGRES_DB_TESTS", "test_db")
+    db_echo_log: bool = (
+        True if os.environ.get("DB_ECHO_LOG", "False").lower() == "true" else False
+    )
 
     class Config:
         env_file = ".env"
