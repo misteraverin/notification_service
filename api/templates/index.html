@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Mailing Service</title>
+</head>
+<body>
+    <h1>Welcome to Mailing Service</h1>
+    <p>Search for a customer:</p>
+
+    <form action="search" method="post" enctype="multipart/form-data">
+        <table>
+            <tr>
+                <td><label for="phone_code">Phone code:</label></td>
+                <td><input type="number" name="phone_code"></td>
+            </tr>
+            <tr>
+                <td><label for="tag">Tag:</label></td>
+                <td><input type="text" name="tag"></td>
+            </tr>
+        </table>
+        <button type="submit">Search</button>
+    </form>
+</body>
+</html>

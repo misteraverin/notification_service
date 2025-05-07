@@ -1,0 +1,86 @@
+version: "3.9"
+
+services:
+  fastapi_service:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    hostname: fastapi_service
+    container_name: fastapi_service
+    depends_on:
+      - db_postgres
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./api:/home/app
+    networks:
+      - my-net
+
+  db_postgres:
+    image: postgres:15
+    hostname: db_postgres
+    container_name: db_postgres
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-postgres:/var/lib/postgresql/data
+      - ./scripts/create_databases.sql:/docker-entrypoint-initdb.d/create_databases.sql
+    networks:
+      - my-net
+
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    depends_on:
+      - db_postgres
+      - fastapi_service
+    volumes:
+      - redis:/data
+    networks:
+      - my-net
+
+  worker:
+    build: ./api
+    depends_on:
+      - db_postgres
+      - fastapi_service
+      - redis
+    env_file:
+      - .env
+    command: "poetry run celery -A services.sender.celery_worker worker --beat -l info -Q main-queue -c 1"
+    networks:
+      - my-net
+
+  flower:
+    build: ./api
+    depends_on:
+      - db_postgres
+      - fastapi_service
+      - redis
+      - worker
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    command: "poetry run celery --broker=redis://redis:6379 --result-backend=redis://redis:6379 flower"
+    networks:
+      - my-net
+
+volumes:
+  db-postgres:
+    driver: local
+  redis:
+    driver: local
+  worker:
+    driver: local
+
+networks:
+  my-net:
