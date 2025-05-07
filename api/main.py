@@ -13,6 +13,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CollectorRegistry, make_asgi_app, multiprocess
 from routers import (
+    admin,
     customers,
     mailouts,
     messages,
@@ -38,6 +39,7 @@ app = FastAPI(
 )
 
 app.include_router(users.router, tags=["Authentication"])
+app.include_router(admin.router)
 
 routers = (
     (phone_codes.router, "Phone Codes"),
