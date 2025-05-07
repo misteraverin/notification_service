@@ -1,21 +1,17 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlmodel import select
-
-from db.errors import EntityDoesNotExist, WrongDatetimeError
+from db.errors import WrongDatetimeError
 from repositories.base import BaseRepository
+from schemas.mailouts import Mailout, MailoutCreate, MailoutRead, MailoutUpdate
 from schemas.phone_codes import PhoneCode
 from schemas.tags import Tag
-from schemas.mailouts import Mailout, MailoutRead, MailoutCreate, MailoutUpdate
 from services.sender.metrics import mailouts_total_created
+from sqlmodel import select
 
 
 def check_time(model):
-    if (
-        model.start_at > model.finish_at
-        or model.available_start_at > model.available_finish_at
-    ):
+    if model.start_at > model.finish_at:
         raise WrongDatetimeError
 
 
@@ -38,22 +34,32 @@ class MailoutRepository(BaseRepository):
         if tag:
             query = query.where(self.model.tags.any(Tag.tag.in_(tag)))
         if phone_code:
-            query = query.where(self.model.phone_codes.any(PhoneCode.phone_code.in_(phone_code)))
+            query = query.where(
+                self.model.phone_codes.any(PhoneCode.phone_code.in_(phone_code))
+            )
         query = query.offset(offset).limit(limit)
         return await self.get_list(query)
 
     async def get(self, model_id: int) -> Optional[MailoutRead]:
         return await super().get(self.model, model_id)
 
-    async def update(self, model_id: int, model_update: MailoutUpdate) -> Optional[MailoutRead]:
+    async def update(
+        self, model_id: int, model_update: MailoutUpdate
+    ) -> Optional[MailoutRead]:
         check_time(model_update)
         return await super().update(self.model, model_id, model_update)
 
-    async def delete_mailout_tag(self, model_id: int, tag_id: int) -> Optional[MailoutRead]:
+    async def delete_mailout_tag(
+        self, model_id: int, tag_id: int
+    ) -> Optional[MailoutRead]:
         return await super().delete_model_tag(self.model, model_id, Tag, tag_id)
 
-    async def delete_mailout_phone_code(self, model_id: int, phone_code_id: int) -> Optional[MailoutRead]:
-        return await super().delete_model_phone_code(self.model, model_id, PhoneCode, phone_code_id)
+    async def delete_mailout_phone_code(
+        self, model_id: int, phone_code_id: int
+    ) -> Optional[MailoutRead]:
+        return await super().delete_model_phone_code(
+            self.model, model_id, PhoneCode, phone_code_id
+        )
 
     async def select_mailout_jobs(self):
         _now = datetime.now()
@@ -67,5 +73,7 @@ class MailoutRepository(BaseRepository):
     async def delete_model_tag(self, model, model_id: int, tag_model, tag_id: int):
         raise NotImplementedError
 
-    async def delete_model_phone_code(self, model, model_id: int, phone_code_model, phone_code_id: int):
+    async def delete_model_phone_code(
+        self, model, model_id: int, phone_code_model, phone_code_id: int
+    ):
         raise NotImplementedError

@@ -1,17 +1,16 @@
-from datetime import datetime, time, timedelta
-
-from sqlmodel import Session
-from sqlalchemy import select
+from datetime import datetime, timedelta
 
 from db.sessions import engine
 from schemas.base import StatusEnum
-from schemas.phone_codes import PhoneCode, PhoneCodeCreate
-from schemas.timezones import Timezone, TimezoneCreate
-from schemas.tags import Tag, TagCreate
-from schemas.messages import Message, MessageCreate
 from schemas.customers import Customer, CustomerCreate
 from schemas.mailouts import Mailout, MailoutCreate
+from schemas.messages import Message, MessageCreate
+from schemas.phone_codes import PhoneCode, PhoneCodeCreate
+from schemas.tags import Tag, TagCreate
+from schemas.timezones import Timezone, TimezoneCreate
 from schemas.users import User
+from sqlalchemy import select
+from sqlmodel import Session
 
 
 def add_to_db(session, item):
@@ -34,9 +33,7 @@ def upsert_phone_code(session, value):
     result = session.exec(statement).first()
 
     return upsert_value(
-        session,
-        result,
-        PhoneCode.from_orm(PhoneCodeCreate(phone_code=value))
+        session, result, PhoneCode.from_orm(PhoneCodeCreate(phone_code=value))
     )
 
 
@@ -45,9 +42,7 @@ def upsert_timezone(session, value):
     result = session.exec(statement).first()
 
     return upsert_value(
-        session,
-        result,
-        Timezone.from_orm(TimezoneCreate(timezone=value))
+        session, result, Timezone.from_orm(TimezoneCreate(timezone=value))
     )
 
 
@@ -55,35 +50,31 @@ def upsert_tag(session, value):
     statement = select(Tag).where(Tag.tag == value)
     result = session.exec(statement).first()
 
-    return upsert_value(
-        session,
-        result,
-        Tag.from_orm(TagCreate(tag=value))
-    )
+    return upsert_value(session, result, Tag.from_orm(TagCreate(tag=value)))
 
 
 def create_entries(session):
-    phone_code1 = upsert_phone_code(session, '925')
-    phone_code2 = upsert_phone_code(session, '980')
-    phone_code3 = upsert_phone_code(session, '967')
+    phone_code1 = upsert_phone_code(session, "925")
+    phone_code2 = upsert_phone_code(session, "980")
+    phone_code3 = upsert_phone_code(session, "967")
 
-    timezone1 = upsert_timezone(session, 'Europe/Moscow')
-    timezone2 = upsert_timezone(session, 'Europe/Belgrade')
+    timezone1 = upsert_timezone(session, "Europe/Moscow")
+    timezone2 = upsert_timezone(session, "Europe/Belgrade")
 
-    tag1 = upsert_tag(session, 'Female')
-    tag2 = upsert_tag(session, 'Unemployed')
-    tag3 = upsert_tag(session, 'Male')
-    tag4 = upsert_tag(session, 'Student')
+    tag1 = upsert_tag(session, "Female")
+    tag2 = upsert_tag(session, "Unemployed")
+    tag3 = upsert_tag(session, "Male")
+    tag4 = upsert_tag(session, "Student")
 
     customer1 = Customer.from_orm(
         CustomerCreate(
             country_code=7,
-            phone='1234567',
+            phone="1234567",
         ),
         update={
-            'phone_code_id': phone_code1.id,
-            'timezone_id': timezone1.id,
-        }
+            "phone_code_id": phone_code1.id,
+            "timezone_id": timezone1.id,
+        },
     )
     customer1.tags.extend([tag1, tag2])
     add_to_db(session, customer1)
@@ -91,12 +82,12 @@ def create_entries(session):
     customer2 = Customer.from_orm(
         CustomerCreate(
             country_code=7,
-            phone='4444444',
+            phone="4444444",
         ),
         update={
-            'phone_code_id': phone_code2.id,
-            'timezone_id': timezone2.id,
-        }
+            "phone_code_id": phone_code2.id,
+            "timezone_id": timezone2.id,
+        },
     )
     customer2.tags.extend([tag3, tag4])
     add_to_db(session, customer2)
@@ -107,9 +98,7 @@ def create_entries(session):
         MailoutCreate(
             start_at=_now,
             finish_at=_now + timedelta(minutes=3),
-            available_start_at=time(10, 0, 0),
-            available_finish_at=time(19, 0, 0),
-            text_message='Hello world',
+            text_message="Hello world",
         )
     )
     mailout.tags.extend([tag1, tag2, tag3, tag4])
@@ -133,8 +122,8 @@ def create_entries(session):
     )
     add_to_db(session, message2)
 
-    user = User(username='shark')
-    user.set_password('qwerty')
+    user = User(username="shark")
+    user.set_password("qwerty")
     add_to_db(session, user)
 
 

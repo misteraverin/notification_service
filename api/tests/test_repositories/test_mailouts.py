@@ -1,24 +1,21 @@
-from datetime import datetime, time
 import random
+from datetime import datetime
 
 import pytest
-
 from db.errors import EntityDoesNotExist, WrongDatetimeError
+from repositories.mailouts import MailoutRepository
 from repositories.phone_codes import PhoneCodeRepository
 from repositories.tags import TagRepository
-from repositories.mailouts import MailoutRepository
+from schemas.mailouts import Mailout, MailoutCreate, MailoutUpdate
 from schemas.phone_codes import PhoneCodeCreate
 from schemas.tags import TagCreate
-from schemas.mailouts import Mailout, MailoutCreate, MailoutUpdate
 
 
 def get_right_mailout_create():
     return MailoutCreate(
         start_at=datetime(2023, 7, 12),
         finish_at=datetime(2023, 7, 13),
-        available_start_at=time(9, 0, 0),
-        available_finish_at=time(18, 0, 0),
-        text_message='Test message 1',
+        text_message="Test message 1",
     )
 
 
@@ -26,9 +23,7 @@ def get_wrong_mailout_create():
     return MailoutCreate(
         start_at=datetime(2023, 7, 13),
         finish_at=datetime(2023, 7, 12),
-        available_start_at=time(9, 0, 0),
-        available_finish_at=time(18, 0, 0),
-        text_message='Test message 2',
+        text_message="Test message 2",
     )
 
 
@@ -44,7 +39,7 @@ async def create_mailout(
 
     db_tag = await tag_repo.create(
         model_id=db_mailout.id,
-        tag_create=TagCreate(tag='Test'),
+        tag_create=TagCreate(tag="Test"),
         parent_model=Mailout,
     )
 
@@ -68,8 +63,6 @@ async def test_create_mailout(db_session):
 
     assert db_mailout.start_at == mailout.start_at
     assert db_mailout.finish_at == mailout.finish_at
-    assert db_mailout.available_start_at == mailout.available_start_at
-    assert db_mailout.available_finish_at == mailout.available_finish_at
     assert db_mailout.text_message == mailout.text_message
 
 
@@ -81,8 +74,6 @@ async def test_get_mailouts(db_session):
 
     assert db_mailouts[0].start_at == mailout.start_at
     assert db_mailouts[0].finish_at == mailout.finish_at
-    assert db_mailouts[0].available_start_at == mailout.available_start_at
-    assert db_mailouts[0].available_finish_at == mailout.available_finish_at
     assert db_mailouts[0].text_message == mailout.text_message
 
 
@@ -109,17 +100,13 @@ async def test_update_mailout(db_session):
 
     new_start_at = datetime(2024, 7, 12)
     new_finish_at = datetime(2024, 7, 13)
-    new_available_start_at = time(8, 0, 0)
-    new_available_finish_at = time(19, 0, 0)
-    new_text_message = 'Text message 3'
+    new_text_message = "Text message 3"
 
     update_mailout = await repository.update(
         model_id=db_mailout.id,
         model_update=MailoutUpdate(
             start_at=new_start_at,
             finish_at=new_finish_at,
-            available_start_at=new_available_start_at,
-            available_finish_at=new_available_finish_at,
             text_message=new_text_message,
         ),
     )
@@ -127,8 +114,6 @@ async def test_update_mailout(db_session):
     assert update_mailout.id == db_mailout.id
     assert update_mailout.start_at == new_start_at
     assert update_mailout.finish_at == new_finish_at
-    assert update_mailout.available_start_at == new_available_start_at
-    assert update_mailout.available_finish_at == new_available_finish_at
     assert update_mailout.text_message == new_text_message
 
 
