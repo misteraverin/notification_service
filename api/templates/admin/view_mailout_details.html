@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Mailout {{ mailout.id }} - Details{% endblock %}
+
+{% block content %}
+    {% if mailout %}
+        <h1>Mailout Details: ID {{ mailout.id }}</h1>
+        <div class="mailout-details">
+            <p><strong>Text Message:</strong></p>
+            <pre>{{ mailout.text_message }}</pre>
+            <p><strong>Start Time:</strong> {{ mailout.start_at.strftime('%Y-%m-%d %H:%M:%S %Z') if mailout.start_at else 'N/A' }}</p>
+            <p><strong>End Time:</strong> {{ mailout.finish_at.strftime('%Y-%m-%d %H:%M:%S %Z') if mailout.finish_at else 'N/A' }}</p>
+            
+            {% if mailout.available_start_at or mailout.available_finish_at %}
+                <p><strong>Client Sending Window:</strong> 
+                    {{ mailout.available_start_at.strftime('%H:%M') if mailout.available_start_at else '--:--' }} - 
+                    {{ mailout.available_finish_at.strftime('%H:%M') if mailout.available_finish_at else '--:--' }}
+                </p>
+            {% endif %}
+
+            <p><strong>Tags:</strong>
+                {% if mailout.tags %}
+                    {% for tag in mailout.tags %}
+                        <span class="tag">{{ tag.tag }}</span>
+                    {% endfor %}
+                {% else %}
+                    None
+                {% endif %}
+            </p>
+            <p><strong>Phone Codes:</strong>
+                {% if mailout.phone_codes %}
+                    {% for pc in mailout.phone_codes %}
+                        <span class="tag">{{ pc.phone_code }}</span>
+                    {% endfor %}
+                {% else %}
+                    None
+                {% endif %}
+            </p>
+        </div>
+
+        <h2>Associated Messages ({{ mailout.messages | length }})</h2>
+        {% if mailout.messages %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Msg ID</th>
+                        <th>Customer ID</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in mailout.messages %}
+                    <tr>
+                        <td>{{ message.id }}</td>
+                        <td>{{ message.customer_id }}</td>
+                        <td>{{ message.status }}</td>
+                        {# Assuming TimeStampModel provides created_at and updated_at #}
+                        <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else 'N/A' }}</td>
+                        <td>{{ message.updated_at.strftime('%Y-%m-%d %H:%M:%S') if message.updated_at else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No messages associated with this mailout yet.</p>
+        {% endif %}
+
+    {% else %}
+        <h1>Mailout not found.</h1>
+    {% endif %}
+
+    <p style="margin-top: 2em;"><a href="{{ url_for('list_mailouts_admin') }}" class="button-link">&laquo; Back to Mailout List</a></p>
+    
+<style>
+    .mailout-details p {
+        margin: 0.5em 0;
+    }
+    .mailout-details pre {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        white-space: pre-wrap; /* Wrap long lines */
+        word-break: break-all;
+    }
+    .tag {
+        display: inline-block;
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.85em;
+        margin-right: 4px;
+        margin-bottom: 4px;
+    }
+</style>
+{% endblock %} 

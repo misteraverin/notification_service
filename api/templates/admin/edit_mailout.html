@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Edit Mailout {{ mailout.id }} - Admin{% endblock %}
+
+{% block content %}
+    <h1>Edit Mailout: ID {{ mailout.id }}</h1>
+    {% if mailout %}
+    <form action="{{ url_for('handle_edit_mailout_admin', mailout_id=mailout.id) }}" method="post">
+        <div>
+            <label for="start_time">Start Time:</label>
+            {# Format datetime to YYYY-MM-DDTHH:MM which is expected by datetime-local input #}
+            <input type="datetime-local" id="start_time" name="start_time" 
+                   value="{{ mailout.start_at.isoformat(timespec='minutes') if mailout.start_at else '' }}" required>
+        </div>
+        <div>
+            <label for="end_time">End Time:</label>
+            <input type="datetime-local" id="end_time" name="end_time" 
+                   value="{{ mailout.finish_at.isoformat(timespec='minutes') if mailout.finish_at else '' }}" required>
+        </div>
+        <div>
+            <label for="message_text">Message Text:</label>
+            <textarea id="message_text" name="message_text" rows="4" required>{{ mailout.text_message }}</textarea>
+        </div>
+        <div>
+            <label for="available_start_at">Client Available Start Time (HH:MM, optional):</label>
+            <input type="time" id="available_start_at" name="available_start_at" 
+                   value="{{ mailout.available_start_at.strftime('%H:%M') if mailout.available_start_at else '' }}">
+        </div>
+        <div>
+            <label for="available_finish_at">Client Available Finish Time (HH:MM, optional):</label>
+            <input type="time" id="available_finish_at" name="available_finish_at" 
+                   value="{{ mailout.available_finish_at.strftime('%H:%M') if mailout.available_finish_at else '' }}">
+        </div>
+        
+        {# Note: Editing tags and phone codes directly here is complex due to relationship management. #}
+        {# This basic form only edits core mailout properties. Tags/codes would typically be managed separately. #}
+
+        <div class="form-actions">
+            <button type="submit">Save Changes</button>
+        </div>
+    </form>
+    {% else %}
+        <p>Mailout not found.</p>
+    {% endif %}
+
+    <p style="margin-top: 1em;"><a href="{{ url_for('list_mailouts_admin') }}">Cancel and Back to List</a></p>
+{% endblock %} 
