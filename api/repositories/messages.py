@@ -1,29 +1,31 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import func
-from sqlmodel import select
-
 from db.errors import EntityDoesNotExist
 from repositories.base import BaseRepository
-from schemas.base import StatusEnum, TimeStampModel
+from schemas.base import StatusEnum
 from schemas.customers import Customer
 from schemas.mailouts import Mailout
 from schemas.messages import Message, MessageCreate, MessageRead, MessageUpdate
+from sqlalchemy import func
+from sqlmodel import select
 
 
 class MessageRepository(BaseRepository):
     model = Message
 
+    async def count_all(self) -> int:
+        query = select(func.count(self.model.id))
+        count = await self.session.scalar(query)
+        return count if count is not None else 0
+
     async def create(self, model_create: MessageCreate) -> MessageRead:
         customer_query = await self.session.exec(
-            select(Customer)
-            .where(Customer.id == model_create.customer_id)
+            select(Customer).where(Customer.id == model_create.customer_id)
         )
         customer = customer_query.first()
         mailout_query = await self.session.exec(
-            select(Mailout)
-            .where(Mailout.id == model_create.mailout_id)
+            select(Mailout).where(Mailout.id == model_create.mailout_id)
         )
         mailout = mailout_query.first()
 
@@ -38,20 +40,22 @@ class MessageRepository(BaseRepository):
     async def get(self, model_id: int) -> Optional[MessageRead]:
         return await super().get(self.model, model_id)
 
-    async def update(self, model_id: int, model_update: MessageUpdate) -> Optional[MessageRead]:
+    async def update(
+        self, model_id: int, model_update: MessageUpdate
+    ) -> Optional[MessageRead]:
         if item := await self._get_instance(self.model, model_id):
             item_dict = model_update.dict(
                 exclude_unset=True,
-                exclude={'id', 'status', 'created_at'},
+                exclude={"id", "status", "created_at"},
             )
             for key, value in item_dict.items():
                 setattr(item, key, value)
 
             if not model_update.status:
-                setattr(item, 'status', StatusEnum.updated)
+                setattr(item, "status", StatusEnum.updated)
             else:
-                setattr(item, 'status', model_update.status)
-            setattr(item, 'created_at', datetime.utcnow())
+                setattr(item, "status", model_update.status)
+            setattr(item, "created_at", datetime.utcnow())
 
             await self._add_to_db(item)
             return await self._get_instance(self.model, model_id)
@@ -60,7 +64,7 @@ class MessageRepository(BaseRepository):
 
     async def delete(self, model_id: int) -> None:
         if item := await self._get_instance(self.model, model_id):
-            setattr(item, 'status', StatusEnum.deleted)
+            setattr(item, "status", StatusEnum.deleted)
             await self._add_to_db(item)
             return await self._get_instance(self.model, model_id)
         else:
@@ -69,14 +73,16 @@ class MessageRepository(BaseRepository):
     async def delete_model_tag(self, model, model_id: int, tag_model, tag_id: int):
         raise NotImplementedError
 
-    async def delete_model_phone_code(self, model, model_id: int, phone_code_model, phone_code_id: int):
+    async def delete_model_phone_code(
+        self, model, model_id: int, phone_code_model, phone_code_id: int
+    ):
         raise NotImplementedError
 
     async def get_general_stats(self):
         query = (
             select(
-                self.model.status.label('status'),
-                func.count(self.model.id).label('count')
+                self.model.status.label("status"),
+                func.count(self.model.id).label("count"),
             )
             .group_by(self.model.status)
             .order_by(func.count(self.model.id).desc())
@@ -85,21 +91,15 @@ class MessageRepository(BaseRepository):
         return results.all()
 
     async def get_detailed_stats(self, model_id: int, status: StatusEnum = None):
-        query = (
-            select(
-                self.model.status.label('status'),
-                func.count(self.model.id).label('count')
-            )
-            .where(self.model.mailout_id == model_id)
-        )
+        query = select(
+            self.model.status.label("status"), func.count(self.model.id).label("count")
+        ).where(self.model.mailout_id == model_id)
 
         if status:
             query = query.where(self.model.status == status)
 
-        query = (
-            query
-            .group_by(self.model.status)
-            .order_by(func.count(self.model.id).desc())
+        query = query.group_by(self.model.status).order_by(
+            func.count(self.model.id).desc()
         )
 
         results = await self.session.exec(query)
@@ -109,7 +109,7 @@ class MessageRepository(BaseRepository):
         instance = await self._get_instance(self.model, model_id)
         if instance:
             process_mailout.delay(instance.id)
-            result = f'Mailout {instance.id} set to processing'
+            result = f"Mailout {instance.id} set to processing"
             logger.info(result)
             return result
         else:

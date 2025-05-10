@@ -9,8 +9,11 @@ from db.sample_data import add_sample_data
 from db.sessions import engine
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from prometheus_client import CollectorRegistry, make_asgi_app, multiprocess
 from routers import (
+    admin,
     customers,
     mailouts,
     messages,
@@ -30,11 +33,18 @@ app = FastAPI(
     version=settings.version,
     description=settings.description,
     openapi_prefix=settings.openapi_prefix,
-    docs_url=None,
-    openapi_url=None,
+    docs_url=settings.docs_url,
+    openapi_url=settings.openapi_url,
 )
 
+# Configure Jinja2Templates
+templates = Jinja2Templates(directory="templates")
+
+# Mount static files (optional, but good practice for CSS/JS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 app.include_router(users.router, tags=["Authentication"])
+app.include_router(admin.router)
 
 routers = (
     (phone_codes.router, "Phone Codes"),

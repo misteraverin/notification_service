@@ -1,0 +1,32 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Mailout Statistics - Admin{% endblock %}
+
+{% block content %}
+<h1>Mailout Statistics</h1>
+
+{% if statistics %}
+    <h2>Overall Summary</h2>
+    <p><strong>Total Mailouts:</strong> {{ statistics.total_mailouts }}</p>
+    <p><strong>Total Messages Processed:</strong> {{ statistics.total_messages_sent }}</p>
+
+    {% if statistics.messages_by_status %}
+        <h3>Messages by Status:</h3>
+        <ul>
+            {% for status, count in statistics.messages_by_status.items() %}
+            <li><strong>{{ status }}:</strong> {{ count }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No message status data available.</p>
+    {% endif %}
+    
+    <!-- Placeholder for more detailed statistics per mailout -->
+    <!-- You might want to list mailouts here and link to their individual stats -->
+
+{% else %}
+    <p>No statistics data available at the moment.</p>
+{% endif %}
+
+<p><a href="{{ url_for('list_mailouts_admin') }}">Back to Mailout List</a></p>
+{% endblock %} 
